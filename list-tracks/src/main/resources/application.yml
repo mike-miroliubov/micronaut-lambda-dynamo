@@ -1,0 +1,7 @@
+micronaut:
+  application:
+    name: openfy-list-tracks
+
+logger:
+  levels:
+    org.mike.miroliubov.openfy: DEBUG

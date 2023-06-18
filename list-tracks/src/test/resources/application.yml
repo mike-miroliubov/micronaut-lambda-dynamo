@@ -1,0 +1,4 @@
+aws:
+  region: us-east-1
+
+openfy.dynamodb.table.tracks: openfy-tracks

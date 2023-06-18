@@ -1,0 +1,87 @@
+plugins {
+    id 'java'
+    id("io.micronaut.library") version "3.7.9"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+}
+
+group 'org.mike.miroliubov.openfy'
+version '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+micronaut {
+    runtime("lambda_java")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("org.mike.miroliubov.openfy.*")
+    }
+}
+
+dependencies {
+    // AWS
+    implementation platform("software.amazon.awssdk:bom:2.17.209")
+
+    // Micronaut
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
+    implementation("io.micronaut.aws:micronaut-function-aws")
+    implementation("io.micronaut.crac:micronaut-crac")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+
+    implementation("software.amazon.awssdk:dynamodb")
+    implementation("software.amazon.awssdk:dynamodb-enhanced")
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:1.18.24"
+    annotationProcessor "org.projectlombok:lombok:1.18.24"
+    testCompileOnly "org.projectlombok:lombok:1.18.24"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.24"
+
+    runtimeOnly("ch.qos.logback:logback-classic")
+
+    // Common testing utils
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:5.8.1"
+    testImplementation 'org.mockito:mockito-core:4.6.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:4.6.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.17.3'
+    testImplementation 'org.testcontainers:testcontainers:1.17.3'
+    testImplementation "org.testcontainers:localstack:1.17.3"
+    testImplementation 'org.assertj:assertj-core:3.23.1'
+    testImplementation 'com.amazonaws:aws-java-sdk-core:1.11.793'
+
+    testImplementation('com.fasterxml.uuid:java-uuid-generator:4.2.0')
+}
+
+test {
+    useJUnitPlatform()
+    exclude '**/*IT*'
+}
+
+// separate our integration tests from unit tests
+task integrationTest(type: Test) {
+    group = "verification"
+    useJUnitPlatform()
+    include '**/*IT*'
+}
+
+check.finalizedBy(integrationTest)
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+                .using(module("io.micronaut.serde:micronaut-serde-jackson:1.5.3"))
+    }
+}
+
+build.finalizedBy(shadowJar)
